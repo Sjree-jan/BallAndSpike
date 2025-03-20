@@ -31,58 +31,49 @@
       }
     </style>
 
-    <script>
-      let tonConnect;
+<script>
+  let tonConnect;
 
-      // ✅ Ensure TON Connect SDK is Loaded
-      function checkTONConnect() {
-          console.log("🔹 Checking if TON Connect SDK is available...");
-          if (typeof TonConnect === "undefined") {
-              console.error("❌ TON Connect SDK is NOT loaded!");
-              alert("Error: TON Connect SDK is not loading!");
-              return false;
-          } else {
-              console.log("✅ TON Connect SDK is loaded.");
-              return true;
-          }
+  async function connectTONWallet() {
+      console.log("🔹 Checking if TON Connect SDK is available...");
+
+      // Wait until the SDK has been loaded
+      if (typeof TonConnect === "undefined") {
+          console.error("❌ TON Connect SDK is NOT loaded!");
+          alert("Error: TON Connect SDK is not loading!");
+          return;
       }
 
-      async function connectTONWallet() {
-          console.log("🔹 connectTONWallet function triggered");
+      try {
+          // ✅ Initialize TON Connect
+          tonConnect = new TonConnect({ manifestUrl: 'https://ton.org/tonconnect-manifest.json' });
+          console.log("✅ TON Connect initialized", tonConnect);
 
-          if (!checkTONConnect()) {
+          // ✅ Get available wallets
+          const wallets = await tonConnect.getWallets();
+          console.log("🟢 Available wallets:", wallets);
+
+          if (wallets.length === 0) {
+              alert("No TON wallets found. Install a TON wallet.");
               return;
           }
 
-          try {
-              // ✅ Initialize TON Connect
-              tonConnect = new TonConnect({ manifestUrl: 'https://ton.org/tonconnect-manifest.json' });
-              console.log("✅ TON Connect initialized", tonConnect);
+          // ✅ Request wallet connection
+          await tonConnect.connectWallet(wallets[0]);
+          alert("✅ Wallet connected successfully!");
 
-              // ✅ Get available wallets
-              const wallets = await tonConnect.getWallets();
-              console.log("🟢 Available wallets:", wallets);
+          // ✅ Get and display user's wallet address
+          const userAddress = await tonConnect.getAddress();
+          console.log("🏦 User's Wallet Address:", userAddress);
+          alert("Your Wallet Address: " + userAddress);
 
-              if (wallets.length === 0) {
-                  alert("No TON wallets found. Install a TON wallet.");
-                  return;
-              }
-
-              // ✅ Request wallet connection
-              await tonConnect.connectWallet(wallets[0]);
-              alert("✅ Wallet connected successfully!");
-
-              // ✅ Get and display user's wallet address
-              const userAddress = await tonConnect.getAddress();
-              console.log("🏦 User's Wallet Address:", userAddress);
-              alert("Your Wallet Address: " + userAddress);
-
-          } catch (error) {
-              console.error("❌ Error connecting wallet:", error);
-              alert("Error: " + error.message);
-          }
+      } catch (error) {
+          console.error("❌ Error connecting wallet:", error);
+          alert("Error: " + error.message);
       }
-    </script>
+  }
+</script>
+
 
     <script src="Build/Game.loader.js"></script>
 
