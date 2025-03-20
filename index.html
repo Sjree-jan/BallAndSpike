@@ -10,9 +10,10 @@
     
     <!-- ✅ Corrected SDK Import (ES Module) -->
     <script type="module">
-        import { TonConnect } from "https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.browser.esm.min.js";
-        window.TonConnect = TonConnect;
-    </script>
+      import { TonConnect } from "https://cdn.skypack.dev/@tonconnect/sdk@latest";
+      window.TonConnect = TonConnect;
+  </script>
+  
 
     <canvas id="unity-canvas" width="960" height="600" tabindex="-1" 
         style="width: 960px; height: 600px; background: #231F20;"></canvas>
