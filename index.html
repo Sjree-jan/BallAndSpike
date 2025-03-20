@@ -10,12 +10,9 @@
     
     <!-- ✅ Corrected SDK Import (ES Module) -->
     <script type="module">
-      import { TonConnect } from "https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js";
-      window.TonConnect = TonConnect;
-  </script>
-  
-  
-  
+        import { TonConnect } from "https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js";
+        window.TonConnect = TonConnect;
+    </script>
 
     <canvas id="unity-canvas" width="960" height="600" tabindex="-1" 
         style="width: 960px; height: 600px; background: #231F20;"></canvas>
@@ -24,7 +21,7 @@
     <button id="connectTonWalletButton" onclick="connectTONWallet()">Connect TON Wallet</button>
 
     <style>
-        #connectTonWalletButton, #sendTONPaymentButton {
+        #connectTonWalletButton {
             position: absolute;
             bottom: 20px;
             left: 50%;
@@ -113,40 +110,6 @@
             productVersion: "1.0",
         });
     </script>
-
-    <!-- ✅ Payment Function -->
-    <script>
-        async function sendTONPayment() {
-            try {
-                if (!tonConnect) {
-                    alert("Please connect a TON wallet first.");
-                    return;
-                }
-
-                // ✅ Set transaction details
-                const transaction = {
-                    to: "UQAok7FgjcsELOZW8VXEp_XGdg8sGprewxDzro7XvClatVaH",  // Replace with your TON wallet address
-                    value: "0.1",  // Amount in TON (e.g., 0.1 TON)
-                    message: "Payment for game rewards"
-                };
-
-                // ✅ Send transaction
-                const result = await tonConnect.sendTransaction(transaction);
-                console.log("Transaction successful:", result);
-                alert("Payment successful!");
-
-            } catch (error) {
-                console.error("Transaction failed:", error);
-                alert("Payment failed!");
-            }
-        }
-
-        // ✅ Make function globally available
-        window.sendTONPayment = sendTONPayment;
-    </script>
-
-    <!-- ✅ Payment Button -->
-    <button id="sendTONPaymentButton" onclick="sendTONPayment()">Pay 0.1 TON</button>
 
 </body>
 </html>
