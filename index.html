@@ -10,6 +10,11 @@
 
     <!-- ✅ Load TON Connect SDK Properly
     <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@2.0.0"></script> -->
+    <script type="module">
+      import { TonConnect } from "https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.browser.esm.min.js";
+      window.TonConnect = TonConnect;
+  </script>
+  
 
     <canvas id="unity-canvas" width=960 height=600 tabindex="-1" style="width: 960px; height: 600px; background: #231F20"></canvas>
     
@@ -30,7 +35,7 @@
           cursor: pointer;
       }
     </style>
-<script>
+<!-- <script>
   function loadTONConnectSDK(callback) {
       console.log("🔹 Attempting to load TON Connect SDK...");
 
@@ -60,7 +65,7 @@
   loadTONConnectSDK(function() {
       console.log("🔹 TON Connect SDK is now available.");
   });
-</script>
+</script> -->
 
 <script>
   let tonConnect;
@@ -102,7 +107,11 @@
           alert("Error: " + error.message);
       }
   }
+
+  // Ensure this function is globally available
+  window.connectTONWallet = connectTONWallet;
 </script>
+
 
 
     <script src="Build/Game.loader.js"></script>
