@@ -27,7 +27,19 @@
           cursor: pointer;
       }
   </style>
-  
+  <script>
+    window.onload = function() {
+        console.log("🔹 Checking if TON Connect SDK is loaded...");
+        if (typeof TonConnect === "undefined") {
+            console.error("❌ TON Connect SDK is NOT loaded!");
+            alert("Error: TON Connect SDK is not loading!");
+            return;
+        } else {
+            console.log("✅ TON Connect SDK is loaded.");
+        }
+    };
+</script>
+
     <script src="Build/Game.loader.js"></script>
     <script>
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
