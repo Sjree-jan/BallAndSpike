@@ -8,8 +8,8 @@
   
   <body style="text-align: center; padding: 0; border: 0; margin: 0;">
 
-    <!-- ✅ Load TON Connect SDK Properly -->
-    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@2.0.0"></script>
+    <!-- ✅ Load TON Connect SDK Properly
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@2.0.0"></script> -->
 
     <canvas id="unity-canvas" width=960 height=600 tabindex="-1" style="width: 960px; height: 600px; background: #231F20"></canvas>
     
@@ -30,6 +30,37 @@
           cursor: pointer;
       }
     </style>
+<script>
+  function loadTONConnectSDK(callback) {
+      console.log("🔹 Attempting to load TON Connect SDK...");
+
+      // Check if the script is already loaded
+      if (typeof TonConnect !== "undefined") {
+          console.log("✅ TON Connect SDK is already loaded.");
+          callback();
+          return;
+      }
+
+      let script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/@tonconnect/sdk@2.0.0";
+      script.async = true; // Load the script asynchronously
+      script.onload = function () {
+          console.log("✅ TON Connect SDK successfully loaded.");
+          callback();
+      };
+      script.onerror = function () {
+          console.error("❌ TON Connect SDK failed to load!");
+          alert("Error: TON Connect SDK could not be loaded!");
+      };
+
+      document.body.appendChild(script);
+  }
+
+  // Load SDK before running any functions
+  loadTONConnectSDK(function() {
+      console.log("🔹 TON Connect SDK is now available.");
+  });
+</script>
 
 <script>
   let tonConnect;
@@ -37,7 +68,6 @@
   async function connectTONWallet() {
       console.log("🔹 Checking if TON Connect SDK is available...");
 
-      // Wait until the SDK has been loaded
       if (typeof TonConnect === "undefined") {
           console.error("❌ TON Connect SDK is NOT loaded!");
           alert("Error: TON Connect SDK is not loading!");
