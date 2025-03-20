@@ -2,17 +2,19 @@
 <html lang="en-us">
   <head>
     <meta charset="utf-8">
-   
-
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | BallVsSpike</title>
-    
-
   </head>
+  
   <body style="text-align: center; padding: 0; border: 0; margin: 0;">
+
+    <!-- ✅ Load TON Connect SDK Properly -->
     <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@2.0.0"></script>
+
     <canvas id="unity-canvas" width=960 height=600 tabindex="-1" style="width: 960px; height: 600px; background: #231F20"></canvas>
+    
     <button id="connectTonWalletButton" onclick="connectTONWallet()">Connect TON Wallet</button>
+
     <style>
       #connectTonWalletButton {
           position: absolute;
@@ -27,43 +29,65 @@
           border-radius: 5px;
           cursor: pointer;
       }
-  </style>
-  <script>
-    window.onload = function() {
-        console.log("🔹 Checking if TON Connect SDK is loaded...");
-        if (typeof TonConnect === "undefined") {
-            console.error("❌ TON Connect SDK is NOT loaded!");
-            alert("Error: TON Connect SDK is not loading!");
-            return;
-        } else {
-            console.log("✅ TON Connect SDK is loaded.");
-        }
-    };
-</script>
+    </style>
 
-<script>
-  function loadTONConnect() {
-      console.log("🔹 Manually loading TON Connect SDK...");
-      
-      let script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/npm/@tonconnect/sdk@2.0.0";
-      script.onload = function () {
-          console.log("✅ TON Connect SDK successfully loaded.");
-      };
-      script.onerror = function () {
-          console.error("❌ TON Connect SDK failed to load!");
-      };
+    <script>
+      let tonConnect;
 
-      document.body.appendChild(script);
-  }
+      // ✅ Ensure TON Connect SDK is Loaded
+      function checkTONConnect() {
+          console.log("🔹 Checking if TON Connect SDK is available...");
+          if (typeof TonConnect === "undefined") {
+              console.error("❌ TON Connect SDK is NOT loaded!");
+              alert("Error: TON Connect SDK is not loading!");
+              return false;
+          } else {
+              console.log("✅ TON Connect SDK is loaded.");
+              return true;
+          }
+      }
 
-  loadTONConnect(); // Call this function to manually load the SDK
-</script>
+      async function connectTONWallet() {
+          console.log("🔹 connectTONWallet function triggered");
+
+          if (!checkTONConnect()) {
+              return;
+          }
+
+          try {
+              // ✅ Initialize TON Connect
+              tonConnect = new TonConnect({ manifestUrl: 'https://ton.org/tonconnect-manifest.json' });
+              console.log("✅ TON Connect initialized", tonConnect);
+
+              // ✅ Get available wallets
+              const wallets = await tonConnect.getWallets();
+              console.log("🟢 Available wallets:", wallets);
+
+              if (wallets.length === 0) {
+                  alert("No TON wallets found. Install a TON wallet.");
+                  return;
+              }
+
+              // ✅ Request wallet connection
+              await tonConnect.connectWallet(wallets[0]);
+              alert("✅ Wallet connected successfully!");
+
+              // ✅ Get and display user's wallet address
+              const userAddress = await tonConnect.getAddress();
+              console.log("🏦 User's Wallet Address:", userAddress);
+              alert("Your Wallet Address: " + userAddress);
+
+          } catch (error) {
+              console.error("❌ Error connecting wallet:", error);
+              alert("Error: " + error.message);
+          }
+      }
+    </script>
 
     <script src="Build/Game.loader.js"></script>
+
     <script>
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
         var meta = document.createElement('meta');
         meta.name = 'viewport';
         meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
@@ -85,84 +109,37 @@
         companyName: "DefaultCompany",
         productName: "BallVsSpike",
         productVersion: "1.0",
-        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
-        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
       });
     </script>
-   <script>
-    let tonConnect;
 
-    async function connectTONWallet() {
-        console.log("🔹 Checking if TON Connect SDK is available...");
+    <script>
+      async function sendTONPayment() {
+          try {
+              if (!tonConnect) {
+                  alert("Please connect a TON wallet first.");
+                  return;
+              }
 
-        if (typeof TonConnect === "undefined") {
-            console.error("❌ TON Connect SDK is NOT loaded!");
-            alert("Error: TON Connect SDK is not loading!");
-            return;
-        }
+              // Set transaction details
+              const transaction = {
+                  to: "UQAok7FgjcsELOZW8VXEp_XGdg8sGprewxDzro7XvClatVaH",  // Replace with your TON wallet address
+                  value: "0.1",  // Amount in TON (e.g., 0.1 TON)
+                  message: "Payment for game rewards"
+              };
 
-        try {
-            // ✅ Initialize TON Connect properly
-            tonConnect = new TonConnect({ manifestUrl: 'https://ton.org/tonconnect-manifest.json' });
-            console.log("✅ TON Connect initialized", tonConnect);
+              // Send transaction
+              const result = await tonConnect.sendTransaction(transaction);
+              console.log("Transaction successful:", result);
+              alert("Payment successful!");
 
-            // ✅ Get available wallets
-            const wallets = await tonConnect.getWallets();
-            console.log("🟢 Available wallets:", wallets);
+          } catch (error) {
+              console.error("Transaction failed:", error);
+              alert("Payment failed!");
+          }
+      }
+    </script>
 
-            if (wallets.length === 0) {
-                alert("No TON wallets found. Install a TON wallet.");
-                return;
-            }
-
-            // ✅ Request wallet connection
-            await tonConnect.connectWallet(wallets[0]);
-            alert("✅ Wallet connected successfully!");
-
-            // ✅ Get and display user's wallet address
-            const userAddress = await tonConnect.getAddress();
-            console.log("🏦 User's Wallet Address:", userAddress);
-            alert("Your Wallet Address: " + userAddress);
-
-        } catch (error) {
-            console.error("❌ Error connecting wallet:", error);
-            alert("Error: " + error.message);
-        }
-    }
-</script>
-
-
-
-
-<script>
-    async function sendTONPayment() {
-        try {
-            if (!tonConnect) {
-                alert("Please connect a TON wallet first.");
-                return;
-            }
-
-            // Set transaction details
-            const transaction = {
-                to: "UQAok7FgjcsELOZW8VXEp_XGdg8sGprewxDzro7XvClatVaH",  // Replace with your TON wallet address
-                value: "0.1",  // Amount in TON (e.g., 0.1 TON)
-                message: "Payment for game rewards"
-            };
-
-            // Send transaction
-            const result = await tonConnect.sendTransaction(transaction);
-            console.log("Transaction successful:", result);
-            alert("Payment successful!");
-
-        } catch (error) {
-            console.error("Transaction failed:", error);
-            alert("Payment failed!");
-        }
-    }
-</script>
-
-<button onclick="sendTONPayment()">Pay 0.1 TON</button>
-
+    <button onclick="sendTONPayment()">Pay 0.1 TON</button>
 
   </body>
 </html>
