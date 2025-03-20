@@ -2,7 +2,8 @@
 <html lang="en-us">
   <head>
     <meta charset="utf-8">
-    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@2.0.0"></script>
+
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | BallVsSpike</title>
     
@@ -69,36 +70,48 @@
         // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
       });
     </script>
-    <script>
+   <script>
     let tonConnect;
 
     async function connectTONWallet() {
-        try {
-            // Initialize TON Connect
-            tonConnect = new TonConnect();
+        console.log("🔹 Checking if TON Connect SDK is available...");
 
-            // Check if a wallet is already connected
+        if (typeof TonConnect === "undefined") {
+            console.error("❌ TON Connect SDK is NOT loaded!");
+            alert("Error: TON Connect SDK is not loading!");
+            return;
+        }
+
+        try {
+            // ✅ Initialize TON Connect properly
+            tonConnect = new TonConnect({ manifestUrl: 'https://ton.org/tonconnect-manifest.json' });
+            console.log("✅ TON Connect initialized", tonConnect);
+
+            // ✅ Get available wallets
             const wallets = await tonConnect.getWallets();
-            console.log("Available wallets:", wallets);
+            console.log("🟢 Available wallets:", wallets);
 
             if (wallets.length === 0) {
                 alert("No TON wallets found. Install a TON wallet.");
                 return;
             }
 
-            // Request wallet connection
+            // ✅ Request wallet connection
             await tonConnect.connectWallet(wallets[0]);
-            alert("Wallet connected!");
+            alert("✅ Wallet connected successfully!");
 
-            // Get user's wallet address
+            // ✅ Get and display user's wallet address
             const userAddress = await tonConnect.getAddress();
-            console.log("User's Wallet Address:", userAddress);
+            console.log("🏦 User's Wallet Address:", userAddress);
+            alert("Your Wallet Address: " + userAddress);
 
         } catch (error) {
-            console.error("Error connecting wallet:", error);
+            console.error("❌ Error connecting wallet:", error);
+            alert("Error: " + error.message);
         }
     }
 </script>
+
 
 
 
