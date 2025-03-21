@@ -1,115 +1,100 @@
 <!DOCTYPE html>
-<html lang="en-us">
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity WebGL Player | BallVsSpike</title>
-</head>
-
-<body style="text-align: center; padding: 0; border: 0; margin: 0;">
-    
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Telegram Mini App – TON Wallet Connect</title>
+  <!-- Include TON Connect SDK (via CDN) -->
+  <!-- <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js" defer></script> -->
   <script type="module">
-    import { TonConnect } from "https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.browser.esm.js";
+    import { TonConnect } from "https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.mjs";
     window.TonConnect = TonConnect;
 </script>
 
 
-    <canvas id="unity-canvas" width="960" height="600" tabindex="-1" 
-        style="width: 960px; height: 600px; background: #231F20;"></canvas>
-
-    <!-- ✅ Wallet Connection Button -->
-    <button id="connectTonWalletButton" onclick="connectTONWallet()">Connect TON Wallet</button>
-
-    <style>
-        #connectTonWalletButton {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 20px;
-            font-size: 18px;
-            background-color: #0088cc;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+</head>
+<body>
+  <h2>TON Wallet Connection Demo</h2>
+  
+  <!-- Unity WebGL game container (for compatibility; your game canvas can be placed here) -->
+  <div id="gameContainer">
+    <!-- Example Unity Canvas (replace with your actual Unity WebGL canvas if needed) -->
+    <!-- <canvas id="unity-canvas"></canvas> -->
+  </div>
+  
+  <!-- Connect to TON Wallet button -->
+  <button id="connect-btn">Connect to TON Wallet</button>
+  
+  <!-- Display area for the connected wallet address -->
+  <p id="wallet-address"></p>
+  
+  <script>
+    // Wait for the DOM content to load and SDK to be ready
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Initialize TON Connect SDK (with manifest URL for your app)
+      const connector = new TonConnectSDK.TonConnect({
+        // **Replace the manifestUrl with your app's actual URL hosting tonconnect-manifest.json**
+        manifestUrl: window.location.origin + '/tonconnect-manifest.json'
+      });
+      
+      // Restore session if the user has connected before (ensures persistent connection across page reloads)
+      await connector.restoreConnection();
+      
+      // Subscribe to connection status changes to handle connect/disconnect events
+      connector.onStatusChange((walletInfo) => {
+        const addressEl = document.getElementById('wallet-address');
+        const connectBtn = document.getElementById('connect-btn');
+        if (connector.connected && walletInfo.account) {
+          // Wallet connected successfully: display the wallet address
+          const userAddress = walletInfo.account.address;
+          addressEl.textContent = 'Wallet Address: ' + userAddress;
+          // Update the button text to indicate connection (optional)
+          connectBtn.textContent = 'Connected';
+          connectBtn.disabled = true;
+        } else {
+          // Wallet not connected or disconnected
+          addressEl.textContent = '';
+          connectBtn.textContent = 'Connect to TON Wallet';
+          connectBtn.disabled = false;
         }
-    </style>
-
-    <!-- ✅ Fix: Ensure SDK is Loaded Before Running Wallet Functions -->
-    <script>
-        let tonConnect;
-
-        async function connectTONWallet() {
-            console.log("🔹 Checking if TON Connect SDK is available...");
-
-            if (typeof TonConnect === "undefined") {
-                console.error("❌ TON Connect SDK is NOT loaded!");
-                alert("Error: TON Connect SDK is not loading!");
-                return;
-            }
-
-            try {
-                // ✅ Initialize TON Connect
-                tonConnect = new TonConnect({ manifestUrl: 'https://ton.org/tonconnect-manifest.json' });
-                console.log("✅ TON Connect initialized", tonConnect);
-
-                // ✅ Get available wallets
-                const wallets = await tonConnect.getWallets();
-                console.log("🟢 Available wallets:", wallets);
-
-                if (wallets.length === 0) {
-                    alert("No TON wallets found. Install a TON wallet.");
-                    return;
-                }
-
-                // ✅ Request wallet connection
-                await tonConnect.connectWallet(wallets[0]);
-                alert("✅ Wallet connected successfully!");
-
-                // ✅ Get and display user's wallet address
-                const userAddress = await tonConnect.getAddress();
-                console.log("🏦 User's Wallet Address:", userAddress);
-                alert("Your Wallet Address: " + userAddress);
-
-            } catch (error) {
-                console.error("❌ Error connecting wallet:", error);
-                alert("Error: " + error.message);
-            }
+      });
+      
+      // Handle the Connect button click
+      document.getElementById('connect-btn').addEventListener('click', async () => {
+        try {
+          // Fetch the list of available TON wallets (supported by TON Connect)
+          const wallets = await connector.getWallets();
+          
+          // Check if there's an injected or embedded wallet (e.g., TON Wallet in Telegram or browser extension)
+          const injectedWallet = wallets.find(wallet => wallet.embedded || wallet.injected);
+          if (injectedWallet) {
+            // Connect directly to the injected/embedded wallet
+            connector.connect({ jsBridgeKey: injectedWallet.jsBridgeKey });
+            return;
+          }
+          
+          // No injected wallet found: proceed with a remote wallet (Tonkeeper as default)
+          const tonkeeperWallet = wallets.find(wallet => 
+            wallet.name.toLowerCase().includes('tonkeeper')
+          ) || wallets.find(wallet => !wallet.injected && !wallet.embedded);
+          
+          if (tonkeeperWallet) {
+            // Initiate connection via the wallet's universal link and bridge (for Tonkeeper or other remote wallets)
+            const connectionLink = connector.connect({
+              universalLink: tonkeeperWallet.universalLink,
+              bridgeUrl: tonkeeperWallet.bridgeUrl
+            });
+            // Open the wallet link for the user.
+            // In Telegram Mini App on mobile, this should open the TON wallet app (e.g., Tonkeeper).
+            window.open(connectionLink, '_blank');
+          } else {
+            console.error('No TON wallets available for connection.');
+          }
+        } catch (error) {
+          console.error('Failed to connect to TON wallet:', error);
         }
-
-        // ✅ Make function globally available
-        window.connectTONWallet = connectTONWallet;
-    </script>
-
-    <!-- ✅ Load Unity Game -->
-    <script src="Build/Game.loader.js"></script>
-
-    <script>
-        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-            var meta = document.createElement('meta');
-            meta.name = 'viewport';
-            meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-            document.getElementsByTagName('head')[0].appendChild(meta);
-
-            var canvas = document.querySelector("#unity-canvas");
-            canvas.style.width = "100%";
-            canvas.style.height = "100%";
-            canvas.style.position = "fixed";
-
-            document.body.style.textAlign = "left";
-        }
-
-        createUnityInstance(document.querySelector("#unity-canvas"), {
-            dataUrl: "Build/Game.data",
-            frameworkUrl: "Build/Game.framework.js",
-            codeUrl: "Build/Game.wasm",
-            streamingAssetsUrl: "StreamingAssets",
-            companyName: "DefaultCompany",
-            productName: "BallVsSpike",
-            productVersion: "1.0",
-        });
-    </script>
-
+      });
+    });
+  </script>
 </body>
 </html>
