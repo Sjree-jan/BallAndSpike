@@ -5,8 +5,9 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>Unity WebGL Player | BallVsSpike</title>
 
-  <!-- ✅ Load TON Connect SDK -->
-  <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+<!-- TON SDK + UI -->
+<script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 
   <style>
     body {
@@ -23,12 +24,16 @@
     }
   </style>
 
-  <!-- ✅ Initialize TON Connect early -->
-  <script>
-    window.tonConnect = new TonConnectSDK.TonConnect({
-      manifestUrl: 'https://sjree-jan.github.io/BallAndSpike/tonconnect-manifest.json'
-    });
-  </script>
+ <!-- Initialize TON UI (NO BUTTON DISPLAY) -->
+<script>
+  window.tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+    manifestUrl: 'https://sjree-jan.github.io/BallAndSpike/tonconnect-manifest.json',
+    buttonRootId: '', // ⛔ Don't attach the default button
+    actionsConfiguration: {
+      showWalletsList: 'always' // Always show modal (not auto)
+    }
+  });
+</script>
 </head>
 
 <body>
