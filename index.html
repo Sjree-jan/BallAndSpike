@@ -4,12 +4,15 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | BallVsSpike</title>
-      <!-- ✅ TON Connect SDK -->
+      <!-- :white_check_mark: TON Connect SDK -->
       <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
-
+      <!-- :white_check_mark: TON Connect UI -->
+      <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
   </head>
   <body style="text-align: center; padding: 0; border: 0; margin: 0;">
     <canvas id="unity-canvas" width=960 height=600 tabindex="-1" style="width: 960px; height: 600px; background: #231F20"></canvas>
+    <!-- Add the TON Connect button container here -->
+    <div id="tonconnect-ui" style="position: absolute; top: 20px; right: 20px;"></div>
     <script src="Build/Game.loader.js"></script>
     <script>
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
@@ -18,15 +21,12 @@
         meta.name = 'viewport';
         meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
         document.getElementsByTagName('head')[0].appendChild(meta);
-
         var canvas = document.querySelector("#unity-canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";
         canvas.style.position = "fixed";
-
         document.body.style.textAlign = "left";
       }
-
       createUnityInstance(document.querySelector("#unity-canvas"), {
         dataUrl: "Build/Game.data",
         frameworkUrl: "Build/Game.framework.js",
@@ -38,76 +38,21 @@
         // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
         // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
       });
-
-      
     </script>
-      <!-- ✅ TON Connect Integration -->
-  <script>
-    let tonConnect;
-
-    window.addEventListener("load", async () => {
-      tonConnect = new TonConnectSDK.TonConnect({
-        manifestUrl: "https://sjree-jan.github.io/BallAndSpike/tonconnect-manifest.json" // 🔁 Replace with your manifest URL
+    <script>
+      // Initialize TON Connect UI (this will handle both UI and connection)
+      const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+        manifestUrl: 'https://sjree-jan.github.io/BallAndSpike/tonconnect-manifest.json',
+        buttonRootId: 'tonconnect-ui'
       });
-      window.tonConnect = tonConnect;
-      console.log("✅ TON Connect initialized");
-    });
-
-    async function connectTONWallet() {
-  try {
-    if (!tonConnect) {
-      console.error("TON Connect not initialized.");
-      return;
-    }
-
-    const wallets = await tonConnect.getWallets();
-    console.log("Available wallets:", wallets);
-
-    if (!wallets || wallets.length === 0) {
-      alert("No TON wallets available. Please install Tonkeeper or another wallet.");
-      return;
-    }
-
-    const embedded = wallets.find(w => w.embedded || w.injected);
-
-    if (embedded && embedded.jsBridgeKey) {
-      await tonConnect.connect({ jsBridgeKey: embedded.jsBridgeKey });
-    } else {
-      const fallback = wallets.find(w => w.universalLink && w.bridgeUrl);
-      if (!fallback) {
-        alert("No compatible wallets found.");
-        return;
-      }
-
-      const link = tonConnect.connect({
-        universalLink: fallback.universalLink,
-        bridgeUrl: fallback.bridgeUrl
-      });
-
-      // Telegram.WebApp.openLink(link); // If using in Telegram
-      window.open(link, "_blank");
-    }
-
-    tonConnect.onStatusChange(wallet => {
-      if (wallet?.account?.address) {
-        const address = wallet.account.address;
-        console.log("✅ Connected: " + address);
-        alert("Connected to: " + address);
-        if (window.UnityInstance) {
-          UnityInstance.SendMessage("TONWalletManager", "OnWalletResponse", address);
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error("❌ TON Wallet connection failed", error);
-    alert("Connection failed. See console for details.");
-  }
-}
-
-
-    // ✅ Expose function to Unity via [DllImport("__Internal")]
-    window.connectTONWallet = connectTONWallet;
-  </script>
+      // Add connection handling
+      tonConnectUI.connectWallet()
+        .then(() => {
+          console.log('Wallet connected successfully');
+        })
+        .catch((error) => {
+          console.error('Failed to connect wallet muji:', error);
+        });
+    </script>
   </body>
 </html>
