@@ -54,43 +54,57 @@
     });
 
     async function connectTONWallet() {
-      try {
-        if (!tonConnect) {
-          console.error("TON Connect not initialized.");
-          return;
-        }
-
-        const wallets = await tonConnect.getWallets();
-        const embedded = wallets.find(w => w.embedded || w.injected);
-
-        if (embedded) {
-          await tonConnect.connect({ jsBridgeKey: embedded.jsBridgeKey });
-        } else {
-          const fallback = wallets.find(w => w.name === "Tonkeeper") || wallets[0];
-          const link = tonConnect.connect({
-            universalLink: fallback.universalLink,
-            bridgeUrl: fallback.bridgeUrl
-          });
-          window.open(link, "_blank");
-        }
-
-        tonConnect.onStatusChange(wallet => {
-          if (wallet?.account?.address) {
-            const address = wallet.account.address;
-            console.log("✅ Connected: " + address);
-
-            // ✅ Send wallet address to Unity
-            if (window.UnityInstance) {
-              UnityInstance.SendMessage("TONWalletManager", "OnWalletResponse", address);
-            }
-          }
-        });
-
-      } catch (error) {
-        console.error("❌ TON Wallet connection failed", error);
-        alert("Connection failed. See console for details.");
-      }
+  try {
+    if (!tonConnect) {
+      console.error("TON Connect not initialized.");
+      return;
     }
+
+    const wallets = await tonConnect.getWallets();
+    console.log("Available wallets:", wallets);
+
+    if (!wallets || wallets.length === 0) {
+      alert("No TON wallets available. Please install Tonkeeper or another wallet.");
+      return;
+    }
+
+    const embedded = wallets.find(w => w.embedded || w.injected);
+
+    if (embedded && embedded.jsBridgeKey) {
+      await tonConnect.connect({ jsBridgeKey: embedded.jsBridgeKey });
+    } else {
+      const fallback = wallets.find(w => w.universalLink && w.bridgeUrl);
+      if (!fallback) {
+        alert("No compatible wallets found.");
+        return;
+      }
+
+      const link = tonConnect.connect({
+        universalLink: fallback.universalLink,
+        bridgeUrl: fallback.bridgeUrl
+      });
+
+      // Telegram.WebApp.openLink(link); // If using in Telegram
+      window.open(link, "_blank");
+    }
+
+    tonConnect.onStatusChange(wallet => {
+      if (wallet?.account?.address) {
+        const address = wallet.account.address;
+        console.log("✅ Connected: " + address);
+        alert("Connected to: " + address);
+        if (window.UnityInstance) {
+          UnityInstance.SendMessage("TONWalletManager", "OnWalletResponse", address);
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ TON Wallet connection failed", error);
+    alert("Connection failed. See console for details.");
+  }
+}
+
 
     // ✅ Expose function to Unity via [DllImport("__Internal")]
     window.connectTONWallet = connectTONWallet;
