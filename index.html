@@ -1,100 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-us">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Telegram Mini App – TON Wallet Connect</title>
-  <!-- Include TON Connect SDK (via CDN) -->
-  <!-- <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js" defer></script> -->
-  <script type="module">
-    import { TonConnect } from "https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.mjs";
-    window.TonConnect = TonConnect;
-</script>
+  <title>Unity WebGL Player | BallVsSpike</title>
 
+  <!-- ✅ TON Connect SDK -->
+  <script src="https://unpkg.com/@tonconnect/sdk@latest"></script>
 
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    #unity-canvas {
+      width: 960px;
+      height: 600px;
+      background: #231F20;
+    }
+  </style>
 </head>
+
 <body>
-  <h2>TON Wallet Connection Demo</h2>
-  
-  <!-- Unity WebGL game container (for compatibility; your game canvas can be placed here) -->
-  <div id="gameContainer">
-    <!-- Example Unity Canvas (replace with your actual Unity WebGL canvas if needed) -->
-    <!-- <canvas id="unity-canvas"></canvas> -->
-  </div>
-  
-  <!-- Connect to TON Wallet button -->
-  <button id="connect-btn">Connect to TON Wallet</button>
-  
-  <!-- Display area for the connected wallet address -->
-  <p id="wallet-address"></p>
-  
+  <!-- ✅ Unity Canvas -->
+  <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
+
+  <!-- ✅ Unity Game Loader -->
+  <script src="Build/Game.loader.js"></script>
   <script>
-    // Wait for the DOM content to load and SDK to be ready
-    document.addEventListener('DOMContentLoaded', async () => {
-      // Initialize TON Connect SDK (with manifest URL for your app)
-      const connector = new TonConnectSDK.TonConnect({
-        // **Replace the manifestUrl with your app's actual URL hosting tonconnect-manifest.json**
-        manifestUrl: window.location.origin + '/tonconnect-manifest.json'
-      });
-      
-      // Restore session if the user has connected before (ensures persistent connection across page reloads)
-      await connector.restoreConnection();
-      
-      // Subscribe to connection status changes to handle connect/disconnect events
-      connector.onStatusChange((walletInfo) => {
-        const addressEl = document.getElementById('wallet-address');
-        const connectBtn = document.getElementById('connect-btn');
-        if (connector.connected && walletInfo.account) {
-          // Wallet connected successfully: display the wallet address
-          const userAddress = walletInfo.account.address;
-          addressEl.textContent = 'Wallet Address: ' + userAddress;
-          // Update the button text to indicate connection (optional)
-          connectBtn.textContent = 'Connected';
-          connectBtn.disabled = true;
-        } else {
-          // Wallet not connected or disconnected
-          addressEl.textContent = '';
-          connectBtn.textContent = 'Connect to TON Wallet';
-          connectBtn.disabled = false;
-        }
-      });
-      
-      // Handle the Connect button click
-      document.getElementById('connect-btn').addEventListener('click', async () => {
-        try {
-          // Fetch the list of available TON wallets (supported by TON Connect)
-          const wallets = await connector.getWallets();
-          
-          // Check if there's an injected or embedded wallet (e.g., TON Wallet in Telegram or browser extension)
-          const injectedWallet = wallets.find(wallet => wallet.embedded || wallet.injected);
-          if (injectedWallet) {
-            // Connect directly to the injected/embedded wallet
-            connector.connect({ jsBridgeKey: injectedWallet.jsBridgeKey });
-            return;
-          }
-          
-          // No injected wallet found: proceed with a remote wallet (Tonkeeper as default)
-          const tonkeeperWallet = wallets.find(wallet => 
-            wallet.name.toLowerCase().includes('tonkeeper')
-          ) || wallets.find(wallet => !wallet.injected && !wallet.embedded);
-          
-          if (tonkeeperWallet) {
-            // Initiate connection via the wallet's universal link and bridge (for Tonkeeper or other remote wallets)
-            const connectionLink = connector.connect({
-              universalLink: tonkeeperWallet.universalLink,
-              bridgeUrl: tonkeeperWallet.bridgeUrl
-            });
-            // Open the wallet link for the user.
-            // In Telegram Mini App on mobile, this should open the TON wallet app (e.g., Tonkeeper).
-            window.open(connectionLink, '_blank');
-          } else {
-            console.error('No TON wallets available for connection.');
-          }
-        } catch (error) {
-          console.error('Failed to connect to TON wallet:', error);
-        }
-      });
+    createUnityInstance(document.querySelector("#unity-canvas"), {
+      dataUrl: "Build/Game.data",
+      frameworkUrl: "Build/Game.framework.js",
+      codeUrl: "Build/Game.wasm",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "DefaultCompany",
+      productName: "BallVsSpike",
+      productVersion: "1.0"
+    }).then((instance) => {
+      window.UnityInstance = instance; // 🔁 So JS can call Unity
     });
+  </script>
+
+  <!-- ✅ TON Connect Integration -->
+  <script>
+    let tonConnect;
+
+    window.addEventListener("load", async () => {
+      tonConnect = new TonConnectSDK.TonConnect({
+        manifestUrl: "https://sjree-jan.github.io/BallAndSpike/tonconnect-manifest.json" // 🔁 Replace with your manifest URL
+      });
+      window.tonConnect = tonConnect;
+      console.log("✅ TON Connect initialized");
+    });
+
+    async function connectTONWallet() {
+      try {
+        if (!tonConnect) {
+          console.error("TON Connect not initialized.");
+          return;
+        }
+
+        const wallets = await tonConnect.getWallets();
+        const embedded = wallets.find(w => w.embedded || w.injected);
+
+        if (embedded) {
+          await tonConnect.connect({ jsBridgeKey: embedded.jsBridgeKey });
+        } else {
+          const fallback = wallets.find(w => w.name === "Tonkeeper") || wallets[0];
+          const link = tonConnect.connect({
+            universalLink: fallback.universalLink,
+            bridgeUrl: fallback.bridgeUrl
+          });
+          window.open(link, "_blank");
+        }
+
+        tonConnect.onStatusChange(wallet => {
+          if (wallet?.account?.address) {
+            const address = wallet.account.address;
+            console.log("✅ Connected: " + address);
+
+            // ✅ Send wallet address to Unity
+            if (window.UnityInstance) {
+              UnityInstance.SendMessage("TONWalletManager", "OnWalletResponse", address);
+            }
+          }
+        });
+
+      } catch (error) {
+        console.error("❌ TON Wallet connection failed", error);
+        alert("Connection failed. See console for details.");
+      }
+    }
+
+    // ✅ Expose function to Unity via [DllImport("__Internal")]
+    window.connectTONWallet = connectTONWallet;
   </script>
 </body>
 </html>
