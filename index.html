@@ -4,11 +4,9 @@
   <meta charset="utf-8" />
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>Unity WebGL Player | BallVsSpike</title>
-
   <!-- TON SDK + UI -->
   <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
   <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-
   <style>
     body {
       margin: 0;
@@ -16,7 +14,6 @@
       overflow: hidden;
       text-align: center;
     }
-
     #unity-canvas {
       width: 960px;
       height: 600px;
@@ -24,15 +21,12 @@
     }
   </style>
 </head>
-
 <body>
-  <!-- ✅ Unity Canvas -->
+  <!-- :white_check_mark: Unity Canvas -->
   <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
-
-  <!-- ✅ Hidden TON Connect button root (prevents crash) -->
+  <!-- :white_check_mark: Hidden TON Connect button root (prevents crash) -->
   <div id="ton-ui-hidden" style="display: none;"></div>
-
-  <!-- ✅ Initialize TON UI AFTER DOM is ready -->
+  <!-- :white_check_mark: Initialize TON UI AFTER DOM is ready -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       window.tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
@@ -44,8 +38,7 @@
       });
     });
   </script>
-
-  <!-- ✅ Unity Loader -->
+  <!-- :white_check_mark: Unity Loader -->
   <script src="Build/Game.loader.js"></script>
   <script>
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
@@ -53,15 +46,12 @@
       meta.name = 'viewport';
       meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
       document.head.appendChild(meta);
-
       const canvas = document.querySelector("#unity-canvas");
       canvas.style.width = "100%";
       canvas.style.height = "100%";
       canvas.style.position = "fixed";
-
       document.body.style.textAlign = "left";
     }
-
     createUnityInstance(document.querySelector("#unity-canvas"), {
       dataUrl: "Build/Game.data",
       frameworkUrl: "Build/Game.framework.js",
