@@ -64,5 +64,28 @@
       window.UnityInstance = instance;
     });
   </script>
+
+<script>
+  async function verifyTONTransaction(txHash, expectedAddress, expectedAmount) {
+    try {
+      const res = await fetch(`https://tonapi.io/v2/blockchain/transactions/${txHash}`);
+      const tx = await res.json();
+
+      const valid =
+        tx.in_msg?.source === expectedAddress &&
+        tx.out_msgs?.some(m =>
+          m.destination === "UQAok7FgjcsELOZW8VXEp_XGdg8sGprewxDzro7XvClatVaH" &&
+          m.value === expectedAmount
+        );
+
+      const method = valid ? "OnVerificationSuccess" : "OnVerificationFailed";
+      UnityInstance.SendMessage("TONWalletIntegration", method, txHash);
+    } catch (err) {
+      console.error("❌ Verification error:", err);
+      UnityInstance.SendMessage("TONWalletIntegration", "OnVerificationFailed", txHash);
+    }
+  }
+</script>
+
 </body>
 </html>
