@@ -5,9 +5,9 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>Unity WebGL Player | BallVsSpike</title>
 
-<!-- TON SDK + UI -->
-<script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
-<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+  <!-- TON SDK + UI -->
+  <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 
   <style>
     body {
@@ -23,27 +23,31 @@
       background: #231F20;
     }
   </style>
-
- <!-- Initialize TON UI (NO BUTTON DISPLAY) -->
-<script>
-  window.tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-    manifestUrl: 'https://sjree-jan.github.io/BallAndSpike/tonconnect-manifest.json',
-    buttonRootId: 'ton-ui-hidden',
-    actionsConfiguration: {
-      showWalletsList: 'always' // Always show modal (not auto)
-    }
-  });
-</script>
 </head>
 
 <body>
   <!-- ✅ Unity Canvas -->
   <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
 
+  <!-- ✅ Hidden TON Connect button root (prevents crash) -->
+  <div id="ton-ui-hidden" style="display: none;"></div>
+
+  <!-- ✅ Initialize TON UI AFTER DOM is ready -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      window.tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+        manifestUrl: 'https://sjree-jan.github.io/BallAndSpike/tonconnect-manifest.json',
+        buttonRootId: 'ton-ui-hidden',
+        actionsConfiguration: {
+          showWalletsList: 'always'
+        }
+      });
+    });
+  </script>
+
   <!-- ✅ Unity Loader -->
   <script src="Build/Game.loader.js"></script>
   <script>
-    // Fullscreen for mobile
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
       const meta = document.createElement('meta');
       meta.name = 'viewport';
@@ -58,7 +62,6 @@
       document.body.style.textAlign = "left";
     }
 
-    // ✅ Load Unity and expose to global
     createUnityInstance(document.querySelector("#unity-canvas"), {
       dataUrl: "Build/Game.data",
       frameworkUrl: "Build/Game.framework.js",
@@ -68,7 +71,7 @@
       productName: "BallVsSpike",
       productVersion: "1.0"
     }).then(instance => {
-      window.UnityInstance = instance; // ✅ Expose for JS → Unity calls
+      window.UnityInstance = instance;
     });
   </script>
 </body>
