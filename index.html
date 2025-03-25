@@ -7,7 +7,20 @@
   <!-- TON SDK + UI -->
   <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
   <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-  
+  <script 
+    async 
+    src="https://tganalytics.xyz/index.js" 
+    onload="initAnalytics()" 
+    type="text/javascript"
+></script>
+<script>
+  function initAnalytics() {
+    window.telegramAnalytics.init({
+      token: 'eyJhcHBfbmFtZSI6IjQwNEJhbGxTcGlrZSIsImFwcF91cmwiOiJodHRwczovL3QubWUvQmFsbFZzU3Bpa2Vib3QiLCJhcHBfZG9tYWluIjoiaHR0cHM6Ly9zanJlZS1qYW4uZ2l0aHViLmlvL0JhbGxBbmRTcGlrZS8ifQ==!un7gnTjQe8ZVSD04pCgqC/XqahzI+TPP+C5sc10Ye0s=', // SDK Auth token received via @DataChief_bot
+      appName: '404BallSpike', // The analytics identifier you entered in @DataChief_bot
+    });
+  }
+</script>
   </style>
 </head>
 <body style="text-align: center; padding: 0; border: 0; margin: 0;">
